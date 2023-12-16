@@ -1,0 +1,94 @@
+version: '3'
+
+services:
+
+  mongo-db:
+    image: mongo:latest
+    container_name: mongo-server
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=example-user
+      - MONGO_INITDB_ROOT_PASSWORD=example-pass
+      - MONGO_INITDB_DATABASE=docker
+    volumes:
+      - db-volume:/data/db
+    networks:
+      - my-bridge-network
+
+  mongo-expres:
+    image: mongo-express:latest
+    ports:
+      - 8082:8081
+    depends_on:
+      - mongo-db
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=example-user
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=example-pass
+      - ME_CONFIG_MONGODB_URL=mongodb://example-user:example-pass@mongo-server:27017/docker
+      - ME_CONFIG_MONGODB_SERVER=mongo-db
+    networks:
+      - my-bridge-network
+
+  project-hotel-booking:
+    image: contain
+    ports:
+      - 3008:3008
+    depends_on:
+      - mongo-db
+      - mongo-expres
+    # environment:
+      # - MONGO_DB_USERNAME=example-user 
+      # - MONGO_DB_PASSWORD=example-pass
+    networks:
+      - my-bridge-network
+    
+networks:
+  my-bridge-network:
+    driver: bridge
+  
+
+volumes:
+  db-volume:
+    driver: local
+
+# version: '3'
+
+# services:
+#   # MongoDB container
+#   mongo:
+#     image: mongo:latest
+#     container_name: mongodb
+#     environment:
+#       MONGO_INITDB_ROOT_USERNAME: root_user
+#       MONGO_INITDB_ROOT_PASSWORD: root_password
+#       MONGO_INITDB_DATABASE: mydatabase
+#     ports:
+#       - "27017:27017"
+
+#   # Node.js web application container
+#   node-app:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.node
+#     container_name: node-app
+#     environment:
+#       MONGODB_URL: mongodb://root_user:root_password@mongo:27017/mydatabase
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - mongo
+
+#   # Mongo Express container
+#   mongo-express:
+#     image: mongo-express:latest
+#     container_name: mongo-express
+#     environment:
+#       ME_CONFIG_MONGODB_SERVER: mongo
+#       ME_CONFIG_MONGODB_PORT: 27017
+#       ME_CONFIG_MONGODB_ADMINUSERNAME: root_user
+#       ME_CONFIG_MONGODB_ADMINPASSWORD: root_password
+#     ports:
+#       - "8081:8081"
+#     depends_on:
+      # - mongo
